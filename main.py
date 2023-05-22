@@ -1,7 +1,7 @@
 import asyncio
 import time
 import curses
-
+import random
 
 TIC_TIMEOUT = 0.1
 
@@ -9,13 +9,17 @@ TIC_TIMEOUT = 0.1
 def draw(canvas):
     curses.curs_set(False)
     canvas.border()
-    coroutine1 = blink(canvas, 2, 2)
-    coroutine2 = blink(canvas, 2, 4)
-    coroutine3 = blink(canvas, 2, 6)
-    coroutine4 = blink(canvas, 2, 8)
-    coroutine5 = blink(canvas, 2, 10)
+    y, x = canvas.getmaxyx()
 
-    coroutines = [coroutine1, coroutine2, coroutine3, coroutine4, coroutine5]
+    coroutines = []
+    for coroutine in range(100):
+        coroutine = blink(
+            canvas,
+            random.randint(1, y-2),
+            random.randint(1, x-2),
+            random.choice('+*.:')
+        )
+        coroutines.append(coroutine)
 
     while True:
         for coroutine in coroutines.copy():

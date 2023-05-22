@@ -17,6 +17,7 @@ def draw(canvas):
             canvas,
             random.randint(1, y-2),
             random.randint(1, x-2),
+            random.randint(1, 20),
             random.choice('+*.:')
         )
         coroutines.append(coroutine)
@@ -31,22 +32,22 @@ def draw(canvas):
         time.sleep(TIC_TIMEOUT)
 
 
-async def blink(canvas, row, column, symbol='*'):
+async def blink(canvas, row, column, blink_timing, symbol='*'):
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        for _ in range(20):
+        for _ in range(blink_timing):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
+        for _ in range(blink_timing):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        for _ in range(5):
+        for _ in range(blink_timing):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
+        for _ in range(blink_timing):
             await asyncio.sleep(0)
 
 

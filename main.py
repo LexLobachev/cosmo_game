@@ -3,38 +3,47 @@ import time
 import curses
 
 
+TIC_TIMEOUT = 0.1
+
+
 def draw(canvas):
     curses.curs_set(False)
     canvas.border()
-    row, column = (5, 20)
+    coroutine1 = blink(canvas, 2, 2)
+    coroutine2 = blink(canvas, 2, 4)
+    coroutine3 = blink(canvas, 2, 6)
+    coroutine4 = blink(canvas, 2, 8)
+    coroutine5 = blink(canvas, 2, 10)
+
+    coroutines = [coroutine1, coroutine2, coroutine3, coroutine4, coroutine5]
+
     while True:
-        canvas.addstr(row, column, '*', curses.A_DIM)
-        canvas.refresh()
-        time.sleep(2)
-        canvas.addstr(row, column, '*')
-        canvas.refresh()
-        time.sleep(0.3)
-        canvas.addstr(row, column, '*', curses.A_BOLD)
-        canvas.refresh()
-        time.sleep(0.5)
-        canvas.addstr(row, column, '*')
-        canvas.refresh()
-        time.sleep(0.3)
+        for coroutine in coroutines.copy():
+            try:
+                coroutine.send(None)
+            except StopIteration:
+                coroutines.remove(coroutine)
+            canvas.refresh()
+        time.sleep(TIC_TIMEOUT)
 
 
 async def blink(canvas, row, column, symbol='*'):
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        await asyncio.sleep(0)
+        for _ in range(20):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
+        for _ in range(3):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        await asyncio.sleep(0)
+        for _ in range(5):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
+        for _ in range(3):
+            await asyncio.sleep(0)
 
 
 if __name__ == '__main__':

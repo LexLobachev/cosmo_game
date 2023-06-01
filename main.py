@@ -10,6 +10,8 @@ from curses_tools import draw_frame, get_frame_size, read_controls
 
 
 TIC_TIMEOUT = 0.1
+RETREAT = 2
+ORIGIN = 1
 
 
 def draw(canvas):
@@ -23,8 +25,8 @@ def draw(canvas):
     for coroutine in range(100):
         coroutine = blink(
             canvas,
-            random.randint(1, canvas_max_y - 2),
-            random.randint(1, canvas_max_x - 2),
+            random.randint(ORIGIN, canvas_max_y - RETREAT),
+            random.randint(ORIGIN, canvas_max_x - RETREAT),
             random.randint(1, 20),
             random.choice('+*.:')
         )
@@ -98,37 +100,32 @@ def get_rocket_frames():
         rocket_frame_1 = file.read()
     with open(os.path.join(folder, 'rocket_frame_2.txt')) as file:
         rocket_frame_2 = file.read()
-    return [rocket_frame_1, rocket_frame_2]
+    return [rocket_frame_1, rocket_frame_1, rocket_frame_2, rocket_frame_2]
+
+
+def get_possible_position(value, min_value, max_value):
+    value = min(value, max_value)
+    value = max(value, min_value)
+    return value
 
 
 async def animate_spaceship(canvas, row, column, canvas_max_y, canvas_max_x, *frames):
-    last_frame = None
-    while True:
-        for frame in cycle(frames):
-            frame_height, frame_width = get_frame_size(frame)
-            rows_direction, columns_direction, space_pressed = read_controls(canvas)
-            rows_direction *= 2
-            columns_direction *= 4
-            current_row = row + rows_direction
-            current_column = column + columns_direction
-            if current_row + frame_height > canvas_max_y - 1 or current_row < 2:
-                rows_direction = 0
-            if current_column + frame_width > canvas_max_x - 1 or current_column < 2:
-                columns_direction = 0
-            if last_frame:
-                draw_frame(canvas, row, column, last_frame, negative=True)
+    for frame in cycle(frames):
+        frame_height, frame_width = get_frame_size(frame)
+        rows_direction, columns_direction, space_pressed = read_controls(canvas)
+        rows_direction *= 2
+        columns_direction *= 4
 
-            row += rows_direction
-            column += columns_direction
+        row = get_possible_position(row + rows_direction, ORIGIN, canvas_max_y - frame_height - ORIGIN)
+        column = get_possible_position(column + columns_direction, ORIGIN, canvas_max_x - frame_width - ORIGIN)
 
-            draw_frame(canvas, row, column, frame)
-            last_frame = frame
+        draw_frame(canvas, row, column, frame)
 
-            for _ in range(2):
-                await asyncio.sleep(0)
+        await asyncio.sleep(0)
+
+        draw_frame(canvas, row, column, frame, negative=True)
 
 
 if __name__ == '__main__':
     curses.update_lines_cols()
     curses.wrapper(draw)
-
